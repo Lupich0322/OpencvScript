@@ -18,7 +18,7 @@ def click_matchposition(template_path, device, timestamp):
     # 将PIL图像转换为灰度图像
     screenshot_image = cv2.cvtColor(np.array(screenshot_pil), cv2.COLOR_RGB2GRAY)
     # 保存屏幕截图到指定路径
-    output_path = f"image/outputTest/screenshot_{timestamp}.png"
+    output_path = f"../logs/outputImages/screenshot_{timestamp}.png"
     cv2.imwrite(output_path, screenshot_image)
     # 使用OpenCV进行模板匹配
     result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)

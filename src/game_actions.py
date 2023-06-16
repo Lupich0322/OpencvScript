@@ -1,28 +1,34 @@
 import numpy as np
-
-from adb_utils import connect_device, click_position
-from cv_utils import load_template, get_screenshot, match_template
+from adb_utils import *
+from cv_utils import *
 import time
 
+
 def psy_analysis(device):
-    # 定义模板的路径
-    template_paths = ["../images/ui/ui_enter.PNG", "../images/ui/ui_dailysource.PNG", "../images/ui/dailysource/dailysource_psychgramanalysis.PNG","../images/ui/dailysource/dailysource_psy_level/dailysource_psy_level_666.PNG","../images/ui/ui_startaction.PNG","../images/ui/ui_countbtn.PNG","../images/ui/ui_x2.PNG","../images/ui/ui_autobtn.PNG"]
-    # 对每个模板进行操作
-    for i, template_path in enumerate(template_paths):
-        template = load_template(template_path)
-        screenshot = get_screenshot(device)
-        x, y = match_template(screenshot, template)
-        click_position(device, x, y)
-        time.sleep(1)
-        # 如果我们处于最后一个模板（也就是我们已经进行了最后一次点击），则跳出循环
-        if i == len(template_paths) - 1:
-            break
-        # 等待页面切换
+    template_paths = [
+        "../images/ui/btn/ui_enter.PNG",
+        "../images/ui/btn/ui_dailysource.PNG",
+        "../images/ui/dailysource/dailysource_psychgramanalysis.PNG",
+        "../images/ui/dailysource/dailysource_psy_level/dailysource_psy_level_666.PNG",
+        "../images/ui/btn/ui_startaction.PNG",
+        "../images/ui/btn/ui_countbtn.PNG",
+        "../images/ui/btn/ui_x1w.PNG",
+        "../images/ui/btn/ui_x2.PNG",
+        "../images/ui/btn/ui_autobtn.PNG"
+    ]
+    # 遍历每个模板路径
+    for template_path in template_paths:
+        # 不断尝试获取屏幕截图并匹配模板，直到匹配度达到0.8
         while True:
-            # 获取新的屏幕截图
-            new_screenshot = get_screenshot(device)
-            # 检查新页面是否已经加载完成，可以通过比较新旧截图来判断
-            if not np.array_equal(screenshot, new_screenshot):
+            screenshot_image = get_screenshot(device)
+            template = load_template(template_path)
+            result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+            print(max_val)
+            # 当匹配度大于等于0.8时
+            if max_val >= 0.8:
+                center_x = max_loc[0] + template.shape[1] // 2
+                center_y = max_loc[1] + template.shape[0] // 2
+                click_position(device, center_x, center_y)
                 break
-            # 如果页面还没有切换，等待一段时间再重试
-            time.sleep(0.5)
+            time.sleep(0.1)

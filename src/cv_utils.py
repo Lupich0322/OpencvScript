@@ -1,12 +1,19 @@
 import cv2
 import numpy as np
-import time
+import datetime
+
+
+MIN_MATCH_COUNT = 10
 
 def get_screenshot(device):
     # 使用ADB获取屏幕截图
     screenshot_pil = device.screenshot()
     # 将PIL图像转换为OpenCV图像彩色
     screenshot_image = cv2.cvtColor(np.array(screenshot_pil), cv2.COLOR_RGB2BGR)
+    # Get current date and time
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Save the image with timestamp
+    cv2.imwrite(f'../logs/outputImages/screenshot_{timestamp}.png', screenshot_image)
     return screenshot_image
 
 def load_template(template_path):
@@ -21,34 +28,83 @@ def match_template(screenshot_image, template):
     # 计算模板的中心位置
     center_x = max_loc[0] + template.shape[1] // 2
     center_y = max_loc[1] + template.shape[0] // 2
-    return center_x, center_y
+    return center_x, center_y, max_val
 
-def wait_for_light_refresh(device, template_path):
-    # 加载模板
-    template = load_template(template_path)
-    # 等待页面刷新
-    while True:
-        # 获取新的屏幕截图
-        new_screenshot = get_screenshot(device)
-        # 进行模板匹配
-        x, y = match_template(new_screenshot, template)
-        # 如果匹配成功，表示我们已经到达了期望的页面状态
-        if x > 0 and y > 0:
-            break
-        # 如果页面还没有刷新，等待一段时间再重试
-        time.sleep(0.5)
+def sift_match_template(screenshot_image, template):
+    # 使用SIFT进行模板匹配
+    sift = cv2.xfeatures2d.SIFT_create()
+    kp1, des1 = sift.detectAndCompute(template, None)
+    kp2, des2 = sift.detectAndCompute(screenshot_image, None)
+    bf = cv2.BFMatcher()
+    matches = bf.knnMatch(des1,des2,k=2)
+    good = []
+    for m,n in matches:
+        if m.distance < 0.75*n.distance:
+            good.append([m])
+    if len(good)>MIN_MATCH_COUNT:
+        src_pts = np.float32([ kp1[m[0].queryIdx].pt for m in good ]).reshape(-1,1,2)
+        dst_pts = np.float32([ kp2[m[0].trainIdx].pt for m in good ]).reshape(-1,1,2)
+        M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+        if M is not None:
+            center_x = int(M[0, 2] + template.shape[1] / 2)
+            center_y = int(M[1, 2] + template.shape[0] / 2)
+            return center_x, center_y
+    return None, None  # 返回无效坐标
 
-def wait_for_heavy_refresh(device, status_template_paths):
-    # 等待页面切换
-    while True:
-        # 获取新的屏幕截图
-        new_screenshot = get_screenshot(device)
-        # 加载状态模板并进行匹配
-        for status_template_path in status_template_paths:
-            status_template = load_template(status_template_path)
-            x, y = match_template(new_screenshot, status_template)
-            # 如果匹配成功，表示我们已经到达了期望的页面状态
-            if x > 0 and y > 0:
-                break
-        # 如果页面还没有切换，等待一段时间再重试
-        time.sleep(0.5)
+def orb_match_template(screenshot_image, template):
+    # Use the ORB algorithm to perform template matching
+    orb = cv2.ORB_create()
+    kp1, des1 = orb.detectAndCompute(template, None)
+    kp2, des2 = orb.detectAndCompute(screenshot_image, None)
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    matches = bf.match(des1,des2)
+    # Sort matches by distance (i.e., quality of the match)
+    matches = sorted(matches, key = lambda x:x.distance)
+    if len(matches) > MIN_MATCH_COUNT:
+        src_pts = np.float32([ kp1[m.queryIdx].pt for m in matches ]).reshape(-1,1,2)
+        dst_pts = np.float32([ kp2[m.trainIdx].pt for m in matches ]).reshape(-1,1,2)
+        M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+        if M is not None:
+            center_x = int(M[0, 2] + template.shape[1] / 2)
+            center_y = int(M[1, 2] + template.shape[0] / 2)
+            return center_x, center_y
+    return None, None  # Return invalid coordinates if match failed
+
+
+def akaze_match_template(screenshot_image, template):
+    # Use the AKAZE algorithm to perform template matching
+    akaze = cv2.AKAZE_create()
+    kp1, des1 = akaze.detectAndCompute(template, None)
+    kp2, des2 = akaze.detectAndCompute(screenshot_image, None)
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    matches = bf.match(des1,des2)
+    # Sort matches by distance (i.e., quality of the match)
+    matches = sorted(matches, key = lambda x:x.distance)
+    if len(matches) > MIN_MATCH_COUNT:
+        src_pts = np.float32([ kp1[m.queryIdx].pt for m in matches ]).reshape(-1,1,2)
+        dst_pts = np.float32([ kp2[m.trainIdx].pt for m in matches ]).reshape(-1,1,2)
+        M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+        if M is not None:
+            center_x = int(M[0, 2] + template.shape[1] / 2)
+            center_y = int(M[1, 2] + template.shape[0] / 2)
+            return center_x, center_y
+    return None, None  # Return invalid coordinatesif match failed
+
+def brisk_match_template(screenshot_image, template):
+    # Use the BRISK algorithm to perform template matching
+    brisk = cv2.BRISK_create()
+    kp1, des1 = brisk.detectAndCompute(template, None)
+    kp2, des2 = brisk.detectAndCompute(screenshot_image, None)
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    matches = bf.match(des1,des2)
+    # Sort matches by distance (i.e., quality of the match)
+    matches = sorted(matches, key = lambda x:x.distance)
+    if len(matches) > MIN_MATCH_COUNT:
+        src_pts = np.float32([ kp1[m.queryIdx].pt for m in matches ]).reshape(-1,1,2)
+        dst_pts = np.float32([ kp2[m.trainIdx].pt for m in matches ]).reshape(-1,1,2)
+        M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+        if M is not None:
+            center_x = int(M[0, 2] + template.shape[1] / 2)
+            center_y = int(M[1, 2] + template.shape[0] / 2)
+            return center_x, center_y
+    return None, None  # Return invalid coordinates if match failed
