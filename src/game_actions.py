@@ -6,15 +6,9 @@ import time
 
 def psy_analysis(device):
     template_paths = [
-        "../images/ui/btn/ui_enter.PNG",
-        "../images/ui/btn/ui_dailysource.PNG",
-        "../images/ui/dailysource/dailysource_psychgramanalysis.PNG",
-        "../images/ui/dailysource/dailysource_psy_level/dailysource_psy_level_666.PNG",
-        "../images/ui/btn/ui_startaction.PNG",
-        "../images/ui/btn/ui_countbtn.PNG",
-        "../images/ui/btn/ui_x1w.PNG",
-        "../images/ui/btn/ui_x2.PNG",
-        "../images/ui/btn/ui_autobtn.PNG"
+        "../images/scene_templates/Main/Main_to_Select.png",
+        "../images/scene_templates/Select/Select_to_source.png",
+        "../images/scene_templates/Source/Source_to_Psy.png",
     ]
     # 遍历每个模板路径
     for template_path in template_paths:
@@ -32,3 +26,4 @@ def psy_analysis(device):
                 click_position(device, center_x, center_y)
                 break
             time.sleep(0.1)
+
