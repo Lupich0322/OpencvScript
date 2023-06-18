@@ -9,8 +9,7 @@ class scenemanageTest:
         self.device = connect_device()
 
 scenemanageTest = scenemanageTest()
-transitions = load_scene_transitions('scene_transitions.json')
 current_scene = get_current_scene(scenemanageTest.device,"../images/scene_markers")
 print(current_scene)
 time.sleep(0.5)
-navigate_to_scene(scenemanageTest.device, current_scene, 'Material', '../images/scene_templates', transitions)
+navigate_to_scene(scenemanageTest.device, 'Main', 'Beast')
