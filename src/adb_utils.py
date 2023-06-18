@@ -8,7 +8,14 @@ def connect_device():
     return device
 
 def click_position(device, x, y):
-    # 发送点击命令到该位置
-    adb_cmd = f"adb -s {device.serial} shell input tap {x} {y}"
-    os.system(adb_cmd)
+    # 使用adbutils库的接口直接在设备上执行点击操作
+    device.shell(f"input tap {x} {y}")
+
+def swipe_left(device, start_x, start_y, end_x, end_y, duration=500):
+    # 使用adbutils库的接口直接在设备上执行滑动操作
+    device.shell(f"input swipe {start_x} {start_y} {end_x} {end_y} {duration}")
+
+def swipe_right(device, start_x, start_y, end_x, end_y, duration=500):
+    # 使用adbutils库的接口直接在设备上执行滑动操作
+    device.shell(f"input swipe {start_x} {start_y} {end_x} {end_y} {duration}")
 
