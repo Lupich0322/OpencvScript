@@ -2,7 +2,7 @@ import time
 
 from adb_utils import *
 from cv_utils import *
-from scenemanage_utils import *
+from scene_manage_utils import *
 from game_actions import *
 
 

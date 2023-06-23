@@ -1,7 +1,7 @@
-from scenemanage_utils import *
+from src.scene_manage_utils import *
 import time
-from adb_utils import *
-from cv_utils import *
+from src.adb_utils import *
+from src.cv_utils import *
 
 
 class scenemanageTest:

@@ -5,7 +5,7 @@ import json
 from queue import PriorityQueue
 
 # 加载场景转换信息
-with open('scene_transitions.json', 'r') as file:
+with open('config/scene_transitions.json', 'r') as file:
     transitions = json.load(file)
 # 生成邻接表
 adjacency_list = {scene: list(transitions.keys()) for scene, transitions in transitions.items()}
