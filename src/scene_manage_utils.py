@@ -3,9 +3,13 @@ from cv_utils import *
 import time
 import json
 from queue import PriorityQueue
+from collections import deque
+from src.configs.button_config import *
 
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
 # 加载场景转换信息
-with open('config/scene_transitions.json', 'r') as file:
+with open('../configs/scene_transitions.json', 'r') as file:
     transitions = json.load(file)
 # 生成邻接表
 adjacency_list = {scene: list(transitions.keys()) for scene, transitions in transitions.items()}
@@ -17,6 +21,9 @@ def load_scene_transitions(json_path):
 
 def get_current_scene(device, scene_templates_dir):
     screenshot_image = get_screenshot(device)
+    # DEBUG: 记录获取到的屏幕截图
+    print("调试信息: 已获取屏幕截图")
+
     # 遍历所有场景模板
     for scene in os.listdir(scene_templates_dir):
         scene_dir = os.path.join(scene_templates_dir, scene)
@@ -28,8 +35,19 @@ def get_current_scene(device, scene_templates_dir):
                     result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)
                     _, max_val, _, max_loc = cv2.minMaxLoc(result)
                     if max_val > 0.8:
+                        print("调试信息: 已在场景 '{}' 中找到模板 '{}'".format(scene, file_name))
                         return scene
+    print("警告: 无法识别当前场景")
     return None
+
+def get_button_area(button, expand_pixels=10):
+    x1, y1, x2, y2 = button.area
+    # 确保截取区域不超过屏幕边界
+    x1 = max(0, x1 - expand_pixels)
+    y1 = max(0, y1 - expand_pixels)
+    x2 = min(x2 + expand_pixels, SCREEN_WIDTH)
+    y2 = min(y2 + expand_pixels, SCREEN_HEIGHT)
+    return (x1, y1, x2, y2)
 
 # A* 搜索算法
 def a_star_search(start, end):
@@ -64,17 +82,17 @@ def heuristic(end, next):
     return 0 if next == end else 1
 
 # 获取从起始场景到目标场景的最短路径
+
 def get_shortest_path(start, end):
     came_from, cost_so_far = a_star_search(start, end)
-    path = []
+    path = deque()
     current = end
 
     while current is not None:
-        path.append(current)
+        path.appendleft(current)  # 在路径的左端添加当前场景
         current = came_from[current]
 
-    path.reverse()
-    print(path)
+    print(list(path))  # 如果你希望路径仍然是一个列表，你可以将其转换为列表
     return path
 
 # 导航到目标场景
@@ -87,19 +105,32 @@ def navigate_to_scene(device, start_scene, end_scene):
         next_scene = path[i + 1]
         transitions_sequence = transitions[current_scene][next_scene]  # 获取转换步骤列表
 
+        print("调试信息: 从场景 '{}' 切换到场景 '{}'".format(current_scene, next_scene))
+
         for transition in transitions_sequence:
             while True:
-                screenshot_image = get_screenshot(device)
+                button = Button.instances[transition]
+                area = get_button_area(button)
+                print("调试信息: 获取按钮 '{}' 的区域 {}".format(transition, area))
+
+                screenshot_image = get_screenshot(device, area)
+
                 template = load_template(os.path.join("../images/scene_templates", current_scene, transition))
                 result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)
                 _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
                 if max_val > 0.8:
+                    print("调试信息: 匹配到模板 '{}'".format(transition))
                     center_x = max_loc[0] + template.shape[1] // 2
                     center_y = max_loc[1] + template.shape[0] // 2
+                    # 将区域的起始点坐标加到中心点上
+                    center_x += area[0]
+                    center_y += area[1]
                     click_position(device, center_x, center_y)
                     time.sleep(0.5)  # 等待场景转换
 
                     if get_current_scene(device, "../images/scene_markers") == next_scene:
-                        print(get_current_scene(device, "../images/scene_markers"))
+                        print("调试信息: 到达场景 '{}'".format(next_scene))
                         break  # 如果已经到达下一个场景，则跳出循环
+                else:
+                    print("警告: 未能匹配到模板 '{}'".format(transition))
