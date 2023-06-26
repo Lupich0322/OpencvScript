@@ -1,10 +1,6 @@
 import cv2
 import numpy as np
 import datetime
-import re
-from PIL import Image
-import os
-import re
 
 MIN_MATCH_COUNT = 10
 
@@ -20,11 +16,8 @@ def get_screenshot(device, area=None):
     return screenshot_image
 
 def save_image(image, base_path):
-    # 获取当前日期和时间，生成时间戳
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    # 生成带有时间戳的文件名
     filename = f'{base_path}_{timestamp}.png'
-    # 保存图像到指定路径
     cv2.imwrite(filename, image)
 
 def load_template(template_path):

@@ -1,14 +1,10 @@
-from src.adb_utils import *
-from src.cv_utils import *
-
+from src.scene_manage_utils import *
 
 class CropTest:
     def __init__(self):
         self.device = connect_device()
 
 CropTest = CropTest()
-config_file = '../src/configs/button_config.py'
-button_info = read_button_info_from_config(config_file)
-screenshot_path = '../src/screenshot.png'
-output_dir = '../logs/outputImages'
-crop_and_save_images(button_info, screenshot_path, output_dir)
+# swipe_left(CropTest.device, 195, 550, 1070, 560, duration=500)
+# swipe_right(CropTest.device, 1070, 560, 195, 560, duration=500)
+get_current_scene(CropTest.device, "../images/scene_markers")

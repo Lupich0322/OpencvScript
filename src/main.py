@@ -12,10 +12,9 @@ def main():
 
     # 执行任务
     # psy_analysis(device)
-    # 判断场景
-    # while True:
-    #     current_scene=get_current_scene(device, "../images/scene_markers")
-    #     print("现在的场景:", current_scene)
+    while True:
+        current_scene=get_current_scene(device, "../images/scene_markers")
+        print("现在的场景:", current_scene)
 
 if __name__ == "__main__":
     main()

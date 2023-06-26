@@ -19,26 +19,32 @@ def load_scene_transitions(json_path):
         transitions = json.load(f)
     return transitions
 
-def get_current_scene(device, scene_templates_dir):
-    screenshot_image = get_screenshot(device)
-    # DEBUG: 记录获取到的屏幕截图
-    print("调试信息: 已获取屏幕截图")
+def get_current_scene(device, scene_templates_dir, max_attempts=5):
+    attempt = 0  # 当前尝试次数
+    while attempt < max_attempts:
+        screenshot_image = get_screenshot(device)
+        # DEBUG: 记录获取到的屏幕截图
+        print("调试信息: 已获取屏幕截图")
 
-    # 遍历所有场景模板
-    for scene in os.listdir(scene_templates_dir):
-        scene_dir = os.path.join(scene_templates_dir, scene)
-        if os.path.isdir(scene_dir):
-            for file_name in os.listdir(scene_dir):
-                if file_name.endswith(('.jpg', '.jpeg', '.png')):
-                    template_path = os.path.join(scene_dir, file_name)
-                    template = load_template(template_path)
-                    result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)
-                    _, max_val, _, max_loc = cv2.minMaxLoc(result)
-                    if max_val > 0.8:
-                        print("调试信息: 已在场景 '{}' 中找到模板 '{}'".format(scene, file_name))
-                        return scene
-    print("警告: 无法识别当前场景")
+        # 遍历所有场景模板
+        for scene in os.listdir(scene_templates_dir):
+            scene_dir = os.path.join(scene_templates_dir, scene)
+            if os.path.isdir(scene_dir):
+                for file_name in os.listdir(scene_dir):
+                    if file_name.endswith(('.jpg', '.jpeg', '.png')):
+                        template_path = os.path.join(scene_dir, file_name)
+                        template = load_template(template_path)
+                        result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)
+                        _, max_val, _, max_loc = cv2.minMaxLoc(result)
+                        if max_val > 0.8:
+                            print("调试信息: 已在场景 '{}' 中找到模板 '{}'".format(scene, file_name))
+                            return scene
+        attempt += 1  # 增加尝试次数
+        print("警告: 无法识别当前场景，尝试再次获取屏幕截图")
+        time.sleep(1)  # 等待一段时间后再次尝试获取屏幕截图
+    print("警告: 经过多次尝试后仍无法识别当前场景")
     return None
+
 
 def get_button_area(button, expand_pixels=10):
     x1, y1, x2, y2 = button.area
@@ -82,7 +88,6 @@ def heuristic(end, next):
     return 0 if next == end else 1
 
 # 获取从起始场景到目标场景的最短路径
-
 def get_shortest_path(start, end):
     came_from, cost_so_far = a_star_search(start, end)
     path = deque()
@@ -108,12 +113,19 @@ def navigate_to_scene(device, start_scene, end_scene):
         print("调试信息: 从场景 '{}' 切换到场景 '{}'".format(current_scene, next_scene))
 
         for transition in transitions_sequence:
-            while True:
+            max_attempts = 2  # 设定最大尝试次数
+            attempt = 0  # 当前尝试次数
+
+            while attempt < max_attempts:
                 button = Button.instances[transition]
                 area = get_button_area(button)
                 print("调试信息: 获取按钮 '{}' 的区域 {}".format(transition, area))
 
                 screenshot_image = get_screenshot(device, area)
+
+                # 显示截取的屏幕图片
+                cv2.imshow("Screenshot Image", screenshot_image)
+                cv2.waitKey(0)
 
                 template = load_template(os.path.join("../images/scene_templates", current_scene, transition))
                 result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)
@@ -133,4 +145,6 @@ def navigate_to_scene(device, start_scene, end_scene):
                         print("调试信息: 到达场景 '{}'".format(next_scene))
                         break  # 如果已经到达下一个场景，则跳出循环
                 else:
-                    print("警告: 未能匹配到模板 '{}'".format(transition))
+                    print("警告: 未能匹配到模板 '{}'，尝试再次匹配".format(transition))
+                    attempt += 1
+                    time.sleep(0.5)

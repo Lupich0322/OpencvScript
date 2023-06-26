@@ -8,6 +8,9 @@
     "Chara": {
         "Main": ["Chara_to_Main.png"]
     },
+    "Wild": {
+        "Main": ["Wild_to_Main.png"]
+    },
     "Material": {
         "Beast": ["Material_to_Beast.png"],
         "Forest": ["Material_to_Forest.png"],
@@ -18,14 +21,24 @@
         "Star": ["Material_to_Star.png"],
         "Story": ["Material_to_Story.png"]
     },
+    "Summon": {
+        "Main": ["Summon_to_Main.png"]
+    },
     "Beast": {
-        "Main": ["Beast_to_Main.png"]
+        "Main": ["Beast_to_Main.png"],
+        "Material": ["Beast_to_Material.png"]
     },
     "Forest": {
-        "Main": ["Forest_to_Main.png"]
+        "Main": ["Forest_to_Main.png"],
+        "Material": ["Forest_to_Material.png"]
     },
     "Mountain": {
-        "Main": ["Mountain_to_Main.png"]
+        "Main": ["Mountain_to_Main.png"],
+        "Material": ["Mountain_to_Material.png"]
+    },
+    "Star": {
+        "Main": ["Star_to_Main.png"],
+        "Material": ["Star_to_Material.png"]
     },
     "Somn": {
         "Main": ["Somn_to_Main.png"]
@@ -41,16 +54,20 @@
         "Story": ["Source_to_Story.png"]
     },
     "Exp": {
-        "Main": ["Exp_to_Main.png"]
+        "Main": ["Exp_to_Main.png"],
+        "Source": ["Exp_to_Source.png"]
     },
     "Gold": {
-        "Main": ["Gold_to_Main.png"]
+        "Main": ["Gold_to_Main.png"],
+        "Source": ["Gold_to_Source.png"]
     },
     "Psy": {
-        "Main": ["Psy_to_Main.png"]
+        "Main": ["Psy_to_Main.png"],
+        "Source": ["Psy_to_Source.png"]
     },
     "Sc": {
-        "Main": ["Sc_to_Main.png"]
+        "Main": ["Sc_to_Main.png"],
+        "Source": ["Sc_to_Source.png"]
     },
     "Story": {
         "Chapter1": ["Story_to_Chapter1.png"],

@@ -1,11 +1,7 @@
 import os
 import cv2
-import numpy as np
-import subprocess
 
-# 定义按钮信息的模板字符串
-button_template = "Button(area={0}, button={0}, file='{1}')"
-
+button_template = "Button(name='{0}', area={1}, button={1}, file='{2}')"
 
 def generate_button_configs(scene_dir, output_file_path, screen_img_path):
     # 加载屏幕截图
@@ -14,7 +10,7 @@ def generate_button_configs(scene_dir, output_file_path, screen_img_path):
     # 遍历指定的页面文件夹里的所有模板图片
     for image_name in os.listdir(scene_dir):
         # 读取模板图片
-        template_path = scene_dir + '/' + image_name  # 使用字符串拼接生成路径
+        template_path = os.path.join(scene_dir, image_name)  # 使用os.path.join生成路径
         template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
 
         # 在屏幕截图中匹配模板图片的位置
@@ -27,16 +23,19 @@ def generate_button_configs(scene_dir, output_file_path, screen_img_path):
         button_area = (x1, y1, x2, y2)  # 按钮的点击区域即为模板图片在屏幕截图中的匹配位置
 
         # 将模板图片的名称转换为按钮的名称
-        button_name = image_name.replace('.png', '').upper()
+        button_name = image_name
 
         # 将按钮信息写入到 output_file_path 指定的文件中
         with open(output_file_path, 'a') as f:
-            button_info = button_template.format(button_area, template_path)
-            f.write(f"{button_name} = {button_info}\n")
+            button_info = button_template.format(button_name, button_area, os.path.normpath(template_path))
+            f.write(f"{button_name.upper().replace('.PNG', '')} = {button_info}\n")
         print(f"{button_name}的信息已写入到{output_file_path}。")
 
-    print("所有按钮信息已成功写入!")
+        # 显示匹配的模板图片
+        cv2.imshow("Matched Template", template)
+        cv2.waitKey(0)  # 等待按键操作关闭窗口
 
+    print("所有按钮信息已成功写入!")
 
 def get_screenshot(screen_img_path):
     # 使用adb获取当前屏幕的截图，并将截图保存到指定位置
@@ -45,9 +44,8 @@ def get_screenshot(screen_img_path):
     cmd_pull = "adb pull /sdcard/screenshot.png " + screen_img_path
     os.system(cmd_pull)
 
-
-scene_dir = '../images/scene_templates/Material'
-output_file_path = '../src/configs/button_config.py'
+scene_dir = '../images/scene_templates/Story'
+output_file_path = '../src/configs/scene_marker.py'
 screen_img_path = 'current_screen.png'  # 当前屏幕的截图路径
 
 get_screenshot(screen_img_path)  # 获取当前屏幕的截图
