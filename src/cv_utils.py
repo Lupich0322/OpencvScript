@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import datetime
+from src.adb_utils import click_position
 
 MIN_MATCH_COUNT = 10
 
@@ -24,14 +25,28 @@ def load_template(template_path):
     template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
     return template
 
-def match_template(screenshot_image, template):
+
+def match_click(device, template_path, area):
+    fimage = get_screenshot(device, area=area)
+    template_image = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
     # 使用OpenCV进行模板匹配
-    result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)
+    result = cv2.matchTemplate(fimage, template_image, cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
     # 计算模板的中心位置
-    center_x = max_loc[0] + template.shape[1] // 2
-    center_y = max_loc[1] + template.shape[0] // 2
-    return center_x, center_y, max_val
+    center_x = max_loc[0] + template_image.shape[1] // 2
+    center_y = max_loc[1] + template_image.shape[0] // 2
+    # 将坐标值加上截图区域的左上角坐标，以获取相对于整个屏幕的坐标
+    screen_x = center_x + area[0]
+    screen_y = center_y + area[1]
+    # 判断是否大于阈值
+    if max_val >= 0.8:
+        click_position(device, screen_x, screen_y)
+        print(f"调试信息: 点击{screen_x},{screen_y}")
+        return screen_x, screen_y, max_val
+    else:
+        print(f"未匹配到{template_path}图片")
+        return None, None, max_val
+
 
 def orb_match_template(screenshot_image, template):
     # 使用ORB算法进行模板匹配

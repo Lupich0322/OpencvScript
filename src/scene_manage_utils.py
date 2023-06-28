@@ -19,9 +19,9 @@ def load_scene_transitions(json_path):
         transitions = json.load(f)
     return transitions
 
-def get_current_scene(device, scene_templates_dir, max_attempts=5):
+def get_current_scene(device, scene_templates_dir, max_attempts=6):
     attempt = 0  # 当前尝试次数
-    wait_time = 1  # 初始化等待时间
+    wait_time = 0.5  # 初始化等待时间
     while attempt < max_attempts:
         screenshot_image = get_screenshot(device)
         # DEBUG: 记录获取到的屏幕截图
@@ -43,7 +43,7 @@ def get_current_scene(device, scene_templates_dir, max_attempts=5):
         attempt += 1  # 增加尝试次数
         print("警告: 无法识别当前场景，等待 {} 秒后尝试再次获取屏幕截图".format(wait_time))
         time.sleep(wait_time)  # 等待一段时间后再次尝试获取屏幕截图
-        wait_time += 1  # 每次尝试失败后，增加等待时间
+        wait_time += 0.8  # 每次尝试失败后，增加等待时间
     print("警告: 经过多次尝试后仍无法识别当前场景")
     return None
 

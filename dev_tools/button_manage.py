@@ -10,7 +10,7 @@ def generate_button_configs(scene_dir, output_file_path, screen_img_path):
     # 遍历指定的页面文件夹里的所有模板图片
     for image_name in os.listdir(scene_dir):
         # 读取模板图片
-        template_path = os.path.join(scene_dir, image_name)  # 使用os.path.join生成路径
+        template_path = os.path.join(scene_dir, image_name).replace('\\', '/')  # 使用os.path.join生成路径并替换反斜杠为正斜杠
         template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
 
         # 在屏幕截图中匹配模板图片的位置
@@ -27,7 +27,7 @@ def generate_button_configs(scene_dir, output_file_path, screen_img_path):
 
         # 将按钮信息写入到 output_file_path 指定的文件中
         with open(output_file_path, 'a') as f:
-            button_info = button_template.format(button_name, button_area, os.path.normpath(template_path))
+            button_info = button_template.format(button_name, button_area, template_path.replace('\\', '/'))  # 替换反斜杠为正斜杠
             f.write(f"{button_name.upper().replace('.PNG', '')} = {button_info}\n")
         print(f"{button_name}的信息已写入到{output_file_path}。")
 

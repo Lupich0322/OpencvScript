@@ -1,6 +1,6 @@
 from cv_utils import *
 from adb_utils import *
-
+from src.scene_manage_utils import get_current_scene
 
 LEVEL_TEMPLATES_DIR = '../images/level_templates'
 level_area = (0,550,1280,580)
@@ -55,10 +55,31 @@ def select_level(device, target_level):
     print("警告: 经过多次尝试后仍无法选择关卡 '{}'".format(target_level))
     return False  # 在尝试了多次后仍然没有找到目标关卡
 
-def test_select_level(device, target_level):
-    success = select_level(device, target_level)
-    if success:
-        print("测试通过: 成功匹配到了关卡 '{}'".format(target_level))
+def prepare_level(device, mode,at_times):
+    at_times=str(at_times)
+    current_scene = get_current_scene(device, "../images/scene_markers")
+    if current_scene == 'Preparelevel':
+        if mode == 'manual':
+            print("警告: 手动模式正在开发中，暂时不可用。")
+        elif mode == 'auto':
+            print("信息: 自动模式已启动。")
+            match_click(device, '../images/auto_templates/auto_select.png', area=(833, 630, 877, 682))
+            match_click(device, '../images/auto_templates/auto_times.png', area=(798, 647, 857, 667))
+            if at_times == 1:
+                match_click(device, '../images/auto_templates/start_action.png.png', area=(1002, 639, 1122, 667))
+            elif at_times == 2:
+                match_click(device, '../images/auto_templates/auto_x2.png', area=(812, 528, 838, 545))
+                match_click(device, '../images/auto_templates/auto_start.png', area=(1063, 640, 1121, 668))
+            elif at_times == 3:
+                match_click(device, '../images/auto_templates/auto_x3.png', area=(812, 466, 838, 483))
+                match_click(device, '../images/auto_templates/auto_start.png', area=(1063, 640, 1121, 668))
+            elif at_times == 4:
+                match_click(device, '../images/auto_templates/auto_x4.png', area=(812, 406, 838, 422))
+                match_click(device, '../images/auto_templates/auto_start.png', area=(1063, 640, 1121, 668))
+            else:
+                print("错误: 自动次数不存在")
+        else:
+            print("错误: 不支持的模式。")
     else:
-        print("测试失败: 未能匹配到关卡 '{}'".format(target_level))
+        print("错误: 当前场景不是 'Preparelevel'。")
 
