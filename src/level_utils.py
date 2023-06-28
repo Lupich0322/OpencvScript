@@ -4,7 +4,7 @@ from adb_utils import *
 
 LEVEL_TEMPLATES_DIR = '../images/level_templates'
 level_area = (0,550,1280,580)
-
+max_attempts = 5
 level_templates = {}
 for file_name in os.listdir(LEVEL_TEMPLATES_DIR):
     if file_name.endswith(('.jpg', '.jpeg', '.png')):
@@ -14,17 +14,31 @@ for file_name in os.listdir(LEVEL_TEMPLATES_DIR):
 def select_level(device, target_level):
     target_level = str(target_level)  # 确保目标关卡是字符串形式
     assert target_level in level_templates, "目标关卡不存在"
-    max_attempts = 5
     for _ in range(max_attempts):
         screenshot_image = get_screenshot(device, area=level_area)
+        _, binary_image = cv2.threshold(screenshot_image, 230, 255, cv2.THRESH_BINARY)
+
+        # cv2.imshow("Binary Screenshot Image", screenshot_image)
+        # cv2.waitKey(0)
+        # cv2.imshow("Binary Screenshot Image", binary_image)
+        # cv2.waitKey(0)
+
         matched_levels = {}  # 存储找到的所有关卡和其匹配度
+        matched_locs = {}  # 存储找到的所有关卡的匹配位置
+
         for level_number, template in level_templates.items():
-            result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)
-            _, max_val, _, max_loc = cv2.minMaxLoc(result)
+            result = cv2.matchTemplate(binary_image, template, cv2.TM_CCOEFF_NORMED)
+            _, max_val, max_loc, _ = cv2.minMaxLoc(result)
             if max_val > 0.8:  # 成功匹配到了关卡
                 matched_levels[level_number] = max_val
+                matched_locs[level_number] = max_loc
+
         if target_level in matched_levels:  # 如果匹配到的关卡中包含目标关卡
             print("调试信息: 成功选择了关卡 '{}'".format(target_level))
+            # 计算模板的中心位置并点击
+            center_x = matched_locs[target_level][0] + level_templates[target_level].shape[1] // 2 + level_area[0]
+            center_y = matched_locs[target_level][1] + level_templates[target_level].shape[0] // 2 + level_area[1]
+            click_position(device, center_x, center_y)
             return True
         else:
             # 获取匹配到的最高和最低关卡号，以判断滑动方向
@@ -33,13 +47,13 @@ def select_level(device, target_level):
             print("警告: 匹配到关卡范围 '{}-{}'，但没有找到目标关卡".format(min_matched_level, max_matched_level))
 
             if int(max_matched_level) < int(target_level):  # 目标关卡在右边，需要向左滑动
-                swipe_right(device, 1070, 560, 195, 560, duration=300)
+                swipe_right(device, 1070, 560, 195, 560, duration=500)
             else:  # 目标关卡在左边，需要向右滑动
-                swipe_left(device, 195, 550, 1070, 560, duration=300)
-            time.sleep(1)
+                swipe_left(device, 195, 550, 1070, 560, duration=500)
+            time.sleep(2)
+
     print("警告: 经过多次尝试后仍无法选择关卡 '{}'".format(target_level))
     return False  # 在尝试了多次后仍然没有找到目标关卡
-
 
 def test_select_level(device, target_level):
     success = select_level(device, target_level)
@@ -47,3 +61,4 @@ def test_select_level(device, target_level):
         print("测试通过: 成功匹配到了关卡 '{}'".format(target_level))
     else:
         print("测试失败: 未能匹配到关卡 '{}'".format(target_level))
+

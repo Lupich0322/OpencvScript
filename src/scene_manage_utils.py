@@ -49,7 +49,7 @@ def get_current_scene(device, scene_templates_dir, max_attempts=5):
 
 
 
-def get_button_area(button, expand_pixels=10):
+def get_button_area(button, expand_pixels=5):
     x1, y1, x2, y2 = button.area
     # 确保截取区域不超过屏幕边界
     x1 = max(0, x1 - expand_pixels)
@@ -100,10 +100,9 @@ def get_shortest_path(start, end):
         path.appendleft(current)  # 在路径的左端添加当前场景
         current = came_from[current]
 
-    print(list(path))  # 如果你希望路径仍然是一个列表，你可以将其转换为列表
+    print(list(path))
     return path
 
-# 导航到目标场景
 def navigate_to_scene(device, start_scene, end_scene):
     # 获取从起始场景到目标场景的最短路径
     path = get_shortest_path(start_scene, end_scene)
@@ -126,8 +125,7 @@ def navigate_to_scene(device, start_scene, end_scene):
 
                 screenshot_image = get_screenshot(device, area)
 
-                # # 显示截取的屏幕图片
-                # cv2.imshow("Screenshot Image", screenshot_image)
+                # cv2.imshow("Binary Screenshot Image", screenshot_image)
                 # cv2.waitKey(0)
 
                 template = load_template(os.path.join("../images/scene_templates", current_scene, transition))
@@ -150,6 +148,12 @@ def navigate_to_scene(device, start_scene, end_scene):
                 else:
                     print("警告: 未能匹配到模板 '{}'，尝试再次匹配".format(transition))
                     swipe_left(device, 195, 550, 1070, 560, duration=300)
+                    time.sleep(1)
+                    screenshot_image = get_screenshot(device, area)
+                    result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)
+                    _, max_val, _, max_loc = cv2.minMaxLoc(result)
+                    if max_val > 0.8:
+                        continue  # 如果在左滑后找到了目标，不进行右滑，直接进入下一轮匹配
                     swipe_right(device, 1070, 560, 195, 560, duration=300)
                     attempt += 1
                     time.sleep(0.5)

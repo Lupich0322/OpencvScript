@@ -8,5 +8,5 @@ class scenemanageTest:
 scenemanageTest = scenemanageTest()
 current_scene = get_current_scene(scenemanageTest.device,"../images/scene_markers")
 print("调试信息: 当前场景"+current_scene)
-# navigate_to_scene(scenemanageTest.device, current_scene, 'Sc')
-test_select_level(scenemanageTest.device, '01')
+navigate_to_scene(scenemanageTest.device, current_scene, 'Psy')
+test_select_level(scenemanageTest.device, '02')
