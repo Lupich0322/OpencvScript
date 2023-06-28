@@ -50,4 +50,5 @@ def orb_match_template(screenshot_image, template):
             center_y = int(M[1, 2] + template.shape[0] / 2)
             return center_x, center_y
     # 如果匹配失败，返回无效坐标
+    print("警告:orb匹配失败")
     return None, None

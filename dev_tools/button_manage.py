@@ -44,7 +44,7 @@ def get_screenshot(screen_img_path):
     cmd_pull = "adb pull /sdcard/screenshot.png " + screen_img_path
     os.system(cmd_pull)
 
-scene_dir = '../images/scene_templates/Story'
+scene_dir = '../dev_tools/trainingImages'
 output_file_path = '../src/configs/scene_marker.py'
 screen_img_path = 'current_screen.png'  # 当前屏幕的截图路径
 

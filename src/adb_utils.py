@@ -1,4 +1,5 @@
 import adbutils
+import time
 import os
 
 def connect_device():
@@ -18,4 +19,3 @@ def swipe_left(device, start_x, start_y, end_x, end_y, duration=500):
 def swipe_right(device, start_x, start_y, end_x, end_y, duration=500):
     # 使用adbutils库的接口直接在设备上执行滑动操作
     device.shell(f"input swipe {start_x} {start_y} {end_x} {end_y} {duration}")
-

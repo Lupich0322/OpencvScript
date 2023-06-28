@@ -21,6 +21,7 @@ def load_scene_transitions(json_path):
 
 def get_current_scene(device, scene_templates_dir, max_attempts=5):
     attempt = 0  # 当前尝试次数
+    wait_time = 1  # 初始化等待时间
     while attempt < max_attempts:
         screenshot_image = get_screenshot(device)
         # DEBUG: 记录获取到的屏幕截图
@@ -40,10 +41,12 @@ def get_current_scene(device, scene_templates_dir, max_attempts=5):
                             print("调试信息: 已在场景 '{}' 中找到模板 '{}'".format(scene, file_name))
                             return scene
         attempt += 1  # 增加尝试次数
-        print("警告: 无法识别当前场景，尝试再次获取屏幕截图")
-        time.sleep(1)  # 等待一段时间后再次尝试获取屏幕截图
+        print("警告: 无法识别当前场景，等待 {} 秒后尝试再次获取屏幕截图".format(wait_time))
+        time.sleep(wait_time)  # 等待一段时间后再次尝试获取屏幕截图
+        wait_time += 1  # 每次尝试失败后，增加等待时间
     print("警告: 经过多次尝试后仍无法识别当前场景")
     return None
+
 
 
 def get_button_area(button, expand_pixels=10):
@@ -123,9 +126,9 @@ def navigate_to_scene(device, start_scene, end_scene):
 
                 screenshot_image = get_screenshot(device, area)
 
-                # 显示截取的屏幕图片
-                cv2.imshow("Screenshot Image", screenshot_image)
-                cv2.waitKey(0)
+                # # 显示截取的屏幕图片
+                # cv2.imshow("Screenshot Image", screenshot_image)
+                # cv2.waitKey(0)
 
                 template = load_template(os.path.join("../images/scene_templates", current_scene, transition))
                 result = cv2.matchTemplate(screenshot_image, template, cv2.TM_CCOEFF_NORMED)
@@ -146,5 +149,7 @@ def navigate_to_scene(device, start_scene, end_scene):
                         break  # 如果已经到达下一个场景，则跳出循环
                 else:
                     print("警告: 未能匹配到模板 '{}'，尝试再次匹配".format(transition))
+                    swipe_left(device, 195, 550, 1070, 560, duration=300)
+                    swipe_right(device, 1070, 560, 195, 560, duration=300)
                     attempt += 1
                     time.sleep(0.5)

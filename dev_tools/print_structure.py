@@ -9,4 +9,4 @@ def print_directory_structure(startpath):
         for f in files:
             print('{}{}'.format(subindent, f))
 
-print_directory_structure("../")
+print_directory_structure("../images/level_templates")
